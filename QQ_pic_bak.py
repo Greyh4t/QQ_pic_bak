@@ -7,7 +7,7 @@ import re
 import threading
 import _winreg
 from multiprocessing.dummy import Pool as ThreadPool
-from shutil import copy
+from shutil import copy2
 
 print u'''
             * * * * * * * * * * * * * * * * * * * *
@@ -73,27 +73,27 @@ def backup(pic):
                     os.makedirs(pic_bak)
             except:
                 pass
-            copy(pic, pic_bak)
+            copy2(pic, pic_bak)
 
 
 def main():
+    mht_list = get_mht_list()
+    if not mht_list:
+        print u'请确保目录下有mht文件\n'
+        return
+    print u'共有%s个mht文件中的图片需要备份\n'%len(mht_list)
+
+    get_mht_pic(mht_list)
+    if not mht_pic_b64:
+        print u'mht文件中未包含可备份的图片\n'
+        return
+
     print u'请输入你的QQ号码：'
     qq = raw_input()
     # QQ图片文件夹
     key = _winreg.OpenKey(_winreg.HKEY_CURRENT_USER, r'Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders')
     documents_path = _winreg.QueryValueEx(key, 'Personal')[0]
     img_path = documents_path + os.sep + 'Tencent Files/' + qq + '/Image/'
-
-    mht_list = get_mht_list()
-    if not mht_list:
-        print u'请确保目录下有mht文件\n'
-        return
-    print u'共有%s个文件中的图片需要备份\n'%len(mht_list)
-
-    get_mht_pic(mht_list)
-    if not get_mht_pic:
-        print u'mht中未包含可备份的图片\n'
-        return
     
     pic_list = get_pic_list(img_path)
     if not pic_list:
