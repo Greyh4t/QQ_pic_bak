@@ -1,11 +1,12 @@
 # coding:utf-8
-
+import time
 import base64
 import os
 import sys
 import re
 import threading
 import _winreg
+import hashlib
 from multiprocessing.dummy import Pool as ThreadPool
 from shutil import copy2
 
@@ -20,7 +21,7 @@ print u'''
 
 thread_num = 20
 curr_path = os.path.dirname(sys.argv[0])
-mht_pic_b64 = []
+mht_pic_md5 = []
 
 
 # 获取所有mht文件的完整路径，返回列表
@@ -35,11 +36,15 @@ def get_mht_list():
 
 # 获取所有mht文件中base64编码的图片
 def get_mht_pic(mht_list):
+    pattern = re.compile(r'\.dat\n\n([\s\S]*?)\n\n')
     for mht in mht_list:
         with open(mht, 'r') as f:
-            tmp = re.findall(r'\.dat\n\n([\s\S]*?)\n\n', f.read())
-            tmp[:] = [''.join(n.split('\n')) for n in tmp]
-        mht_pic_b64.extend(tmp)
+            tmp = pattern.findall(f.read())
+            # 对base64编码的图片解码并计算md5
+            md5 = lambda x: hashlib.md5(base64.b64decode(''.join(x.split('\n')))).hexdigest()
+            tmp[:] = [md5(n) for n in tmp]
+            # tmp[:] = [''.join(n.split('\n')) for n in tmp]
+        mht_pic_md5.extend(tmp)
 
 
 # 获取QQ所有图片完整路径，返回列表
@@ -65,7 +70,8 @@ def add_mutex(func):
 def backup(pic):
     with open(pic, 'rb') as f:
         pic_stream = f.read()
-        if base64.b64encode(pic_stream) in mht_pic_b64:
+        # if base64.b64encode(pic_stream) in mht_pic_md5:
+        if hashlib.md5(pic_stream).hexdigest() in mht_pic_md5:
             pic_bak = 'bak' + os.path.dirname(pic.split(':')[1])
             print pic
             try:
@@ -83,21 +89,22 @@ def main():
         return
     print u'共有%s个mht文件中的图片需要备份\n'%len(mht_list)
 
-    get_mht_pic(mht_list)
-    if not mht_pic_b64:
-        print u'mht文件中未包含可备份的图片\n'
-        return
-
-    print u'请输入你的QQ号码：'
+    print u'请输入你的QQ号码(6-10位纯数字)：'
     qq = raw_input()
+    print u'正在搜索mht文件中待备份图片，请稍后....'
+    get_mht_pic(mht_list)
+    if not mht_pic_md5:
+        print u'mht文件中未包含可备份图片\n'
+        return
+    print u'共找到%s张待备份图片'%len(mht_pic_md5)
     # QQ图片文件夹
     key = _winreg.OpenKey(_winreg.HKEY_CURRENT_USER, r'Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders')
     documents_path = _winreg.QueryValueEx(key, 'Personal')[0]
     img_path = documents_path + os.sep + 'Tencent Files/' + qq + '/Image/'
-    
+    print u'正在统计QQ聊天记录图片, 请稍后....'
     pic_list = get_pic_list(img_path)
     if not pic_list:
-        print u'未找到图片，请确保输入了正确的QQ号码\n'
+        print u'未找到QQ聊天记录图片文件夹，请确保输入了正确的QQ号码\n'
         main()
     
     pool = ThreadPool(thread_num)
