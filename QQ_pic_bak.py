@@ -110,7 +110,7 @@ def main():
     pool = ThreadPool(thread_num)
     print u'正在备份....'
     pool.map(backup, pic_list)
-    print u'恢复完成\n图片保存在当前路径的bak文件夹下\n'
+    print u'备份完成\n图片保存在当前路径的bak文件夹下\n'
 
 
 if __name__ == '__main__':
