@@ -36,12 +36,12 @@ def get_mht_list():
 
 # 获取所有mht文件中base64编码的图片
 def get_mht_pic(mht_list):
-    pattern = re.compile(r'\.dat\n\n([\s\S]*?)\n\n')
+    pattern = re.compile(r'\.dat\r\n\r\n([\s\S]*?)\r\n\r\n')
     for mht in mht_list:
-        with open(mht, 'r') as f:
+        with open(mht, 'rb') as f:
             tmp = pattern.findall(f.read())
             # 对base64编码的图片解码并计算md5
-            md5 = lambda x: hashlib.md5(base64.b64decode(''.join(x.split('\n')))).hexdigest()
+            md5 = lambda x: hashlib.md5(base64.b64decode(''.join(x.split('\r\n')))).hexdigest()
             tmp[:] = [md5(n) for n in tmp]
             # tmp[:] = [''.join(n.split('\n')) for n in tmp]
         mht_pic_md5.extend(tmp)
@@ -100,7 +100,7 @@ def main():
     # QQ图片文件夹
     key = _winreg.OpenKey(_winreg.HKEY_CURRENT_USER, r'Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders')
     documents_path = _winreg.QueryValueEx(key, 'Personal')[0]
-    img_path = documents_path + os.sep + 'Tencent Files/' + qq
+    img_path = documents_path + os.sep + 'Tencent Files/' + qq + '/Image'
     print u'正在统计QQ聊天记录图片, 请稍后....'
     pic_list = get_pic_list(img_path)
     if not pic_list:
