@@ -100,7 +100,7 @@ def main():
     # QQ图片文件夹
     key = _winreg.OpenKey(_winreg.HKEY_CURRENT_USER, r'Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders')
     documents_path = _winreg.QueryValueEx(key, 'Personal')[0]
-    img_path = documents_path + os.sep + 'Tencent Files/' + qq + '/Image/'
+    img_path = documents_path + os.sep + 'Tencent Files/' + qq
     print u'正在统计QQ聊天记录图片, 请稍后....'
     pic_list = get_pic_list(img_path)
     if not pic_list:
