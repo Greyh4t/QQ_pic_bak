@@ -4,7 +4,6 @@ import os
 import sys
 import re
 import threading
-import _winreg
 import hashlib
 from multiprocessing.dummy import Pool as ThreadPool
 from shutil import copy2
@@ -97,8 +96,7 @@ def main():
         return
     print u'共找到%s张待备份图片'%len(mht_pic_md5)
     # QQ图片文件夹
-    key = _winreg.OpenKey(_winreg.HKEY_CURRENT_USER, r'Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders')
-    documents_path = _winreg.QueryValueEx(key, 'Personal')[0]
+    documents_path = os.getenv('USERPROFILE') + os.sep + '\Documents'
     img_path = documents_path + os.sep + 'Tencent Files/' + qq + '/Image'
     print u'正在统计QQ聊天记录图片, 请稍后....'
     pic_list = get_pic_list(img_path)
